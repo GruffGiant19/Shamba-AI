@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import React from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { Ionicons } from "@expo/vector-icons";
+import {logIn} from "../../services/authService";
 
 const login = () => {
   const router = useRouter();
@@ -15,7 +16,7 @@ const login = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {  // ✅ ADDED: async keyword
     setErrors({ email: "", password: "" });
 
     let hasError = false;
@@ -43,11 +44,19 @@ const login = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      await logIn(email, password);  // ✅ KEPT: Firebase login
+      router.replace("/(tabs)");      // ✅ MOVED: Navigate on success
+    } catch (error: any) {
       setLoading(false);
-      router.replace("/(tabs)");
-    }, 1500);
-  };
+      Alert.alert(
+        "Login Failed",
+        error.message || "An error occurred during login. Please try again."
+      );
+    }
+  };  // ✅ FIXED: Closed function properly
+
   const handleGoogleSignIn = () => {
     console.log("Google Sign In");
   };

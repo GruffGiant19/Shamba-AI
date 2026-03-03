@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import React from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { Ionicons } from "@expo/vector-icons";
 import PhoneInput from "@/components/common/PhoneInput";
+import { signUp } from "../../services/authService";
 
 const signup = () => {
   const router = useRouter();
@@ -18,7 +19,7 @@ const signup = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "", fullName: "", phone: "", confirmPassword: "" });
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     setErrors({ email: "", password: "", fullName: "", phone: "", confirmPassword: "" });
 
     let hasError = false;
@@ -70,10 +71,15 @@ const signup = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      await signUp(email,password);
+      router.push("/auth/farmSetup");
+    } catch (error:any) {
       setLoading(false);
-      router.replace("/auth/farmSetup");
-    }, 1500);
+      Alert.alert("Sign Up Failed", error.message || "An error occurred during sign up. Please try again.");
+    }
+    
   };
   const handleGoogleSignIn = () => {
     console.log("Google Sign In");

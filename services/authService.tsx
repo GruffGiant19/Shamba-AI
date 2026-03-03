@@ -1,45 +1,34 @@
 import {
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
   User,
-} from "firebase/auth";
-import { auth } from "./firebase";
+} from 'firebase/auth';
+import { auth } from './firebase';
 
-//Sign Up with email and password
-export const signUp = async (
-  email: string,
-  password: string,
-): Promise<User> => {
+// Sign up with email and password
+export const signUp = async (email: string, password: string): Promise<User> => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password,
-    );
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     return userCredential.user;
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
 
-//Login with email and password
-export const login = async (email: string, password: string): Promise<User> => {
+// Log in with email and password
+export const logIn = async (email: string, password: string): Promise<User> => {
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password,
-    );
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return userCredential.user;
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
 
-//Logout
-export const logout = async (): Promise<void> => {
+// Log out
+export const logOut = async (): Promise<void> => {
   try {
     await signOut(auth);
   } catch (error: any) {
@@ -47,7 +36,7 @@ export const logout = async (): Promise<void> => {
   }
 };
 
-//Reset Password
+// Send password reset email
 export const resetPassword = async (email: string): Promise<void> => {
   try {
     await sendPasswordResetEmail(auth, email);
@@ -56,7 +45,7 @@ export const resetPassword = async (email: string): Promise<void> => {
   }
 };
 
-//Get current user
+// Get current user
 export const getCurrentUser = (): User | null => {
   return auth.currentUser;
 };

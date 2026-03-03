@@ -62,7 +62,7 @@ const Input = ({
           autoCapitalize={autoCapitalize}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="flex-1 text-text-primary text-base"
+          className="flex-1 text-text-primary"
         />
 
         {isPassword && (
