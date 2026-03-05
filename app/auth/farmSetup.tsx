@@ -1,19 +1,21 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { ScrollView, Text, View, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Input from "../../components/common/Input";
-import {useRouter} from "expo-router";
+import { useRouter } from "expo-router";
 import Button from "../../components/common/Button";
+import { saveUserProfile } from "@/services/userService";
 
 const farmSetup = () => {
   const router = useRouter();
-  const [farmName,setFarmName] = useState("");
-  const [location,setLocation] = useState("");
-  const [farmSize,setFarmSize] = useState("");
-  const [unit,setUnit] = useState<"acres" | "hectares">("acres")
+  const [farmName, setFarmName] = useState("");
+  const [location, setLocation] = useState("");
+  const [farmSize, setFarmSize] = useState("");
+  const [unit, setUnit] = useState<"acres" | "hectares">("acres");
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
-  const [errors,setErrors] = useState({
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({
     farmName: "",
     location: "",
     farmSize: "",
@@ -33,13 +35,65 @@ const farmSetup = () => {
 
   const toggleCrop = (crop: string) => {
     if (selectedCrops.includes(crop)) {
-      setSelectedCrops(selectedCrops.filter((c) => c!==crop))
-    }else {
-      setSelectedCrops([...selectedCrops,crop])
+      setSelectedCrops(selectedCrops.filter((c) => c !== crop));
+    } else {
+      setSelectedCrops([...selectedCrops, crop]);
     }
   };
 
-  
+  const handleContinue = async () => {
+    setErrors({ farmName: "", location: "", farmSize: "", crops: "" });
+
+    let hasError = false;
+    const newErrors = { farmName: "", location: "", farmSize: "", crops: "" };
+
+    if (!farmName.trim()) {
+      newErrors.farmName = "Farm name is required";
+      hasError = true;
+    }
+
+    if (!location.trim()) {
+      newErrors.location = "Location is required";
+      hasError = true;
+    }
+
+    if (!farmSize.trim()) {
+      newErrors.farmSize = "Farm Size is required";
+      hasError = true;
+    } else if (isNaN(Number(farmSize)) || Number(farmSize) <= 0) {
+      newErrors.farmSize = "Please enter a valid number";
+      hasError = true;
+    }
+
+    if (selectedCrops.length === 0) {
+      newErrors.crops = "Please select at least one crop";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await saveUserProfile({
+        farmProfile: {
+          farmName,
+          location,
+          farmSize: `${farmSize} ${unit}`,
+          primaryCrops: selectedCrops,
+        },
+      });
+
+      // Navigate to next step
+      router.push("/auth/experienceSetup");
+    } catch (error: any) {
+      setLoading(false);
+      Alert.alert("Error", error.message || "Failed to save farm profile");
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView
@@ -47,7 +101,7 @@ const farmSetup = () => {
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20 }}
       >
-        <View className="flex-row items-center justify-center mb-8">
+        <View className="flex-row items-center justify-center mb-8 gap-2">
           <View className="flex-1 h-1 bg-primary rounded-full" />
           <View className="flex-1 h-1 bg-border rounded-full ml-2" />
         </View>
@@ -81,7 +135,7 @@ const farmSetup = () => {
           </TouchableOpacity>
         </View>
 
-         <View className="mb-6">
+        <View className="mb-6">
           <Input
             label="Farm Name"
             placeholder="e.g., Mensah Family Farm"
@@ -117,7 +171,10 @@ const farmSetup = () => {
             </View>
 
             {/* Unit Toggle */}
-            <View className="flex-row border border-border rounded-xl overflow-hidden" style={{ height: 56 }}>
+            <View
+              className="flex-row border border-border rounded-xl overflow-hidden"
+              style={{ height: 56 }}
+            >
               <TouchableOpacity
                 className={`px-4 items-center justify-center ${
                   unit === "acres" ? "bg-primary" : "bg-surface"
@@ -163,16 +220,22 @@ const farmSetup = () => {
 
           <View className="flex-row flex-wrap gap-2">
             {Crops.map((crop) => (
-              <TouchableOpacity key={crop} onPress={() => toggleCrop(crop)} className={`px-4 py-3 rounded-full border ${
+              <TouchableOpacity
+                key={crop}
+                onPress={() => toggleCrop(crop)}
+                className={`px-4 py-3 rounded-full border ${
                   selectedCrops.includes(crop)
                     ? "bg-primary border-primary"
                     : "bg-surface border-border"
-                }`}>
-                <Text className={`font-semibold text-sm ${
+                }`}
+              >
+                <Text
+                  className={`font-semibold text-sm ${
                     selectedCrops.includes(crop)
                       ? "text-white"
                       : "text-text-primary"
-                  }`}>
+                  }`}
+                >
                   {crop}
                 </Text>
               </TouchableOpacity>
@@ -183,9 +246,14 @@ const farmSetup = () => {
             <Text className="text-error text-xs mt-2 ml-1">{errors.crops}</Text>
           )}
         </View>
-          
-          <Button label="Continue" onPress={() => router.push("/auth/experiencSetup")} className="mt-4" />
-          <TouchableOpacity
+
+        <Button
+          label="Continue"
+          onPress={handleContinue}
+          className="mt-4"
+          loading={loading}
+        />
+        <TouchableOpacity
           onPress={() => router.replace("/(tabs)")}
           className="items-center mt-4 mb-8"
         >
