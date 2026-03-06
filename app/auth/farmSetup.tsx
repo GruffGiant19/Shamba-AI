@@ -158,7 +158,7 @@ const farmSetup = () => {
           <Text className="text-text-primary font-semibold text-sm mb-2">
             Farm Size
           </Text>
-          <View className="flex-row items-center mb-4">
+          <View className="flex-row items-center justify-center mb-4">
             <View className="flex-1 mr-2">
               <Input
                 label=""
@@ -173,10 +173,10 @@ const farmSetup = () => {
             {/* Unit Toggle */}
             <View
               className="flex-row border border-border rounded-xl overflow-hidden"
-              style={{ height: 56 }}
+              style={{ height: 45 }}
             >
               <TouchableOpacity
-                className={`px-4 items-center justify-center ${
+                className={`px-3 items-center justify-center ${
                   unit === "acres" ? "bg-primary" : "bg-surface"
                 }`}
                 onPress={() => setUnit("acres")}
@@ -192,7 +192,7 @@ const farmSetup = () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className={`px-4 items-center justify-center ${
+                className={`px-3 items-center justify-center ${
                   unit === "hectares" ? "bg-primary" : "bg-surface"
                 }`}
                 onPress={() => setUnit("hectares")}

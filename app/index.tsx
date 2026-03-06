@@ -15,5 +15,5 @@ export default function Index() {
   }
 
   // return <Redirect href={user ? "/(tabs)" : "/auth/splash"} />;
-  return <Redirect href={"/auth/experienceSetup"} />;
+  return <Redirect href={"/auth/splash"} />;
 }
