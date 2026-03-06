@@ -7,7 +7,6 @@ const app = express();
 
 app.use((req, res, next) => {
   console.log(`🌍 DEBUG: Received ${req.method} request at ${req.url}`);
-  console.log(`Headers:`, JSON.stringify(req.headers));
   next();
 });
 
@@ -31,8 +30,8 @@ app.get("/", (req, res) => {
 const userRoutes = require("./routes/UserRoutes");
 app.use("/api/users", userRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📱 Access from simulator: http://172.20.10.2:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("📱 Use your machine LAN IP (or EXPO_PUBLIC_API_URL) from mobile clients");
 });

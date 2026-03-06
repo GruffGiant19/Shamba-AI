@@ -8,6 +8,7 @@ import Input from "../../components/common/Input";
 import { Ionicons } from "@expo/vector-icons";
 import PhoneInput from "@/components/common/PhoneInput";
 import { signUp } from "../../services/authService";
+import { saveUserProfile } from "../../services/userService";
 
 const signup = () => {
   const router = useRouter();
@@ -74,6 +75,10 @@ const signup = () => {
 
     try {
       await signUp(email,password);
+      await saveUserProfile({
+        fullName,
+        phoneNumber: phone,
+      });
       router.push("/auth/farmSetup");
     } catch (error:any) {
       setLoading(false);
