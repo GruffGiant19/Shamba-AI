@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { getUserProfile } from "../../services/userService";
 import { logOut } from "../../services/authService";
+import { auth } from "../../services/firebase";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -14,7 +15,16 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile();
+    // Wait for Firebase auth to be fully initialized before fetching
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      if (firebaseUser) {
+        loadProfile();
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const loadProfile = async () => {
@@ -73,10 +83,10 @@ export default function ProfileScreen() {
             <Text style={{ fontSize: 64 }}>👨‍🌾</Text>
           </View>
           <Text className="text-primary font-bold text-3xl">
-            {profile?.fullName || user?.email?.split('@')[0] || 'Farmer'}
+            {profile?.fullName || user?.email?.split("@")[0] || "Farmer"}
           </Text>
           <Text className="text-text-secondary mt-1">
-            {profile?.farmProfile?.location || 'Location not set'}
+            {profile?.farmProfile?.location || "Location not set"}
           </Text>
         </View>
 
@@ -95,14 +105,14 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between mb-3 pb-3 border-b border-border">
               <Text className="text-text-secondary">Farm Name</Text>
               <Text className="text-primary font-bold text-base">
-                {profile?.farmProfile?.farmName || 'Not set'}
+                {profile?.farmProfile?.farmName || "Not set"}
               </Text>
             </View>
 
             <View className="flex-row justify-between mb-3 pb-3 border-b border-border">
               <Text className="text-text-secondary">Total Size</Text>
               <Text className="text-primary font-bold text-base">
-                {profile?.farmProfile?.farmSize || 'Not set'}
+                {profile?.farmProfile?.farmSize || "Not set"}
               </Text>
             </View>
 
@@ -111,14 +121,23 @@ export default function ProfileScreen() {
               <View className="flex-1 items-end ml-4">
                 {profile?.farmProfile?.primaryCrops?.length > 0 ? (
                   <View className="flex-row flex-wrap justify-end gap-1">
-                    {profile.farmProfile.primaryCrops.map((crop: string, index: number) => (
-                      <View key={index} className="bg-primary-tint px-2 py-1 rounded-full">
-                        <Text className="text-primary text-xs font-semibold">{crop}</Text>
-                      </View>
-                    ))}
+                    {profile.farmProfile.primaryCrops.map(
+                      (crop: string, index: number) => (
+                        <View
+                          key={index}
+                          className="bg-primary-tint px-2 py-1 rounded-full"
+                        >
+                          <Text className="text-primary text-xs font-semibold">
+                            {crop}
+                          </Text>
+                        </View>
+                      )
+                    )}
                   </View>
                 ) : (
-                  <Text className="text-primary font-bold text-base">Not set</Text>
+                  <Text className="text-primary font-bold text-base">
+                    Not set
+                  </Text>
                 )}
               </View>
             </View>
@@ -127,25 +146,32 @@ export default function ProfileScreen() {
 
         {/* Settings */}
         <View className="mb-8">
-          <Text className="mb-4 text-primary font-bold text-lg">
-            Settings
-          </Text>
+          <Text className="mb-4 text-primary font-bold text-lg">Settings</Text>
 
           <TouchableOpacity
             className="bg-surface rounded-xl mb-3 p-4 flex-row items-center border border-border"
             onPress={() => router.push("/auth/experienceSetup")}
           >
             <Ionicons name="notifications-outline" size={22} color="#1B4332" />
-            <Text className="text-text-primary ml-3 flex-1 text-base">Notifications</Text>
+            <Text className="text-text-primary ml-3 flex-1 text-base">
+              Notifications
+            </Text>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
           <TouchableOpacity
             className="bg-surface rounded-xl mb-3 p-4 flex-row items-center border border-border"
-            onPress={() => Alert.alert("Coming Soon", "Language settings will be available soon")}
+            onPress={() =>
+              Alert.alert(
+                "Coming Soon",
+                "Language settings will be available soon"
+              )
+            }
           >
             <Ionicons name="language-outline" size={22} color="#1B4332" />
-            <Text className="text-text-primary ml-3 flex-1 text-base">Language</Text>
+            <Text className="text-text-primary ml-3 flex-1 text-base">
+              Language
+            </Text>
             <View className="flex-row items-center">
               <Text className="text-text-muted text-sm mr-2">English</Text>
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -154,19 +180,37 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             className="bg-surface rounded-xl mb-3 p-4 flex-row items-center border border-border"
-            onPress={() => Alert.alert("Coming Soon", "Help & Support will be available soon")}
+            onPress={() =>
+              Alert.alert(
+                "Coming Soon",
+                "Help & Support will be available soon"
+              )
+            }
           >
             <Ionicons name="help-circle-outline" size={22} color="#1B4332" />
-            <Text className="text-text-primary ml-3 flex-1 text-base">Help & Support</Text>
+            <Text className="text-text-primary ml-3 flex-1 text-base">
+              Help & Support
+            </Text>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
           <TouchableOpacity
             className="bg-surface rounded-xl mb-3 p-4 flex-row items-center border border-border"
-            onPress={() => Alert.alert("Shamba v1.0.0", "Mini Demo Day Edition\nBuilt with ❤️ for African farmers")}
+            onPress={() =>
+              Alert.alert(
+                "Shamba v1.0.0",
+                "Mini Demo Day Edition\nBuilt with ❤️ for African farmers"
+              )
+            }
           >
-            <Ionicons name="information-circle-outline" size={22} color="#1B4332" />
-            <Text className="text-text-primary ml-3 flex-1 text-base">About</Text>
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color="#1B4332"
+            />
+            <Text className="text-text-primary ml-3 flex-1 text-base">
+              About
+            </Text>
             <View className="flex-row items-center">
               <Text className="text-text-muted text-sm mr-2">v1.0.0</Text>
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -178,7 +222,9 @@ export default function ProfileScreen() {
             onPress={handleLogout}
           >
             <Ionicons name="log-out-outline" size={22} color="#E05C2D" />
-            <Text className="text-error ml-3 flex-1 text-base font-semibold">Log Out</Text>
+            <Text className="text-error ml-3 flex-1 text-base font-semibold">
+              Log Out
+            </Text>
             <Ionicons name="chevron-forward" size={20} color="#E05C2D" />
           </TouchableOpacity>
         </View>
@@ -188,7 +234,11 @@ export default function ProfileScreen() {
           {user?.email}
         </Text>
         <Text className="text-text-muted text-xs text-center mb-4">
-          Member since {new Date(profile?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          Member since{" "}
+          {new Date(profile?.createdAt || Date.now()).toLocaleDateString(
+            "en-US",
+            { month: "long", year: "numeric" }
+          )}
         </Text>
       </ScrollView>
     </SafeAreaView>

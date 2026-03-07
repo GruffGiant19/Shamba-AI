@@ -19,11 +19,7 @@ function TabIcon({ name, focused, label }: TabIconProps) {
         size={24}
         color={focused ? "#1B4332" : "#9CA3AF"}
       />
-      {focused && (
-        <Text style={styles.label}>
-          {label}
-        </Text>
-      )}
+      {focused && <Text style={styles.label}>{label}</Text>}
     </View>
   );
 }
@@ -35,6 +31,7 @@ const TabLayout = () => {
         headerShown: false,
         tabBarStyle: styles.tabBar,
         tabBarShowLabel: false,
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen
@@ -64,6 +61,7 @@ const TabLayout = () => {
       <Tabs.Screen
         name="chat"
         options={{
+          // tabBarStyle: {display: 'none'},
           tabBarIcon: ({ focused }) => (
             <TabIcon name="chatbubbles" focused={focused} label="AI" />
           ),

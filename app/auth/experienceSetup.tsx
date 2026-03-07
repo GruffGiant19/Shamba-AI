@@ -6,6 +6,7 @@ import Button from "@/components/common/Button";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert } from "react-native";
+import { saveUserProfile } from "@/services/userService";
 
 const experienceSetup = () => {
   const router = useRouter();
@@ -40,25 +41,15 @@ const experienceSetup = () => {
   ];
 
   const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
 
   const toggleNotifications = (key: keyof typeof notifications) => {
     setNotifications({ ...notifications, [key]: !notifications[key] });
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!experienceLevel) {
       Alert.alert("Required", "Please select your farming experience level");
       return;
@@ -71,18 +62,22 @@ const experienceSetup = () => {
 
     setLoading(true);
 
-    console.log({
-      experienceLevel,
-      seasonStart,
-      notifications,
-    });
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await saveUserProfile({
+        experience: {
+          level: experienceLevel,
+          seasonStart,
+        },
+        notifications,
+      });
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to save preferences");
+    } finally {
       setLoading(false);
-      router.replace("/(tabs)");  // Now go to dashboard
-    }, 1000);
+    }
   };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView
@@ -228,6 +223,7 @@ const experienceSetup = () => {
               />
             </View>
           </TouchableOpacity>
+
           <TouchableOpacity
             onPress={() => toggleNotifications("weatherAlerts")}
             className="flex-row p-4 bg-surface border-border border rounded-2xl"
@@ -257,7 +253,6 @@ const experienceSetup = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Finish Button */}
         <Button
           label="Finish Setup"
           onPress={handleFinish}
@@ -265,7 +260,6 @@ const experienceSetup = () => {
           loading={loading}
         />
 
-        {/* Skip Link */}
         <TouchableOpacity
           onPress={() => router.replace("/(tabs)")}
           className="items-center mt-4 mb-8"

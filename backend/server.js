@@ -5,11 +5,7 @@ require("dotenv").config();
 
 const app = express();
 
-app.use((req, res, next) => {
-  console.log(`🌍 DEBUG: Received ${req.method} request at ${req.url}`);
-  next();
-});
-
+// ✅ Middleware FIRST — before any routes
 app.use(
   cors({
     origin: "*",
@@ -18,11 +14,13 @@ app.use(
 );
 app.use(express.json());
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+// ✅ Debug logger
+app.use((req, res, next) => {
+  console.log(`🌍 ${req.method} ${req.url}`);
+  next();
+});
 
+// ✅ Routes AFTER middleware
 app.get("/", (req, res) => {
   res.json({ message: "Shamba API is running 🌱" });
 });
@@ -30,8 +28,16 @@ app.get("/", (req, res) => {
 const userRoutes = require("./routes/UserRoutes");
 app.use("/api/users", userRoutes);
 
+const logRoutes = require("./routes/LogRoutes");
+app.use("/api/logs", logRoutes);
+
+// ✅ DB connection
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log("📱 Use your machine LAN IP (or EXPO_PUBLIC_API_URL) from mobile clients");
 });
