@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
+import { generatePDFReport } from "../../services/pdfService";
+import { Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { getUserProfile } from "../../services/userService";
@@ -24,7 +32,20 @@ const getStartDate = (range: TimeRange, seasonStart?: string): Date => {
   }
   // season — use profile's seasonStart month, default to 6 months ago
   if (seasonStart) {
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const monthIndex = months.indexOf(seasonStart);
     if (monthIndex !== -1) {
       const d = new Date(now.getFullYear(), monthIndex, 1);
@@ -38,7 +59,11 @@ const getStartDate = (range: TimeRange, seasonStart?: string): Date => {
   return d;
 };
 
-const filterByRange = (logs: LogEntry[], range: TimeRange, seasonStart?: string): LogEntry[] => {
+const filterByRange = (
+  logs: LogEntry[],
+  range: TimeRange,
+  seasonStart?: string,
+): LogEntry[] => {
   const start = getStartDate(range, seasonStart);
   return logs.filter((l) => new Date(l.date) >= start);
 };
@@ -112,7 +137,9 @@ function BarChart({
               opacity: item.value === 0 ? 0.2 : 1,
             }}
           />
-          <Text className="text-[10px] text-text-secondary mt-2">{item.label}</Text>
+          <Text className="text-[10px] text-text-secondary mt-2">
+            {item.label}
+          </Text>
         </View>
       ))}
     </View>
@@ -170,7 +197,7 @@ export default function ReportsScreen() {
   const prevDuration = Date.now() - prevStart.getTime();
   const prevPeriodStart = new Date(prevStart.getTime() - prevDuration);
   const previous = logs.filter(
-    (l) => new Date(l.date) >= prevPeriodStart && new Date(l.date) < prevStart
+    (l) => new Date(l.date) >= prevPeriodStart && new Date(l.date) < prevStart,
   );
 
   const totalExpenses = filtered.reduce((sum, l) => sum + (l.cost || 0), 0);
@@ -195,7 +222,14 @@ export default function ReportsScreen() {
   });
 
   // Activity breakdown
-  const activityTypes = ["planting", "watering", "fertilizing", "weeding", "spraying", "harvest"];
+  const activityTypes = [
+    "planting",
+    "watering",
+    "fertilizing",
+    "weeding",
+    "spraying",
+    "harvest",
+  ];
   const activityCounts = activityTypes.map((type) => ({
     label: type.charAt(0).toUpperCase() + type.slice(1),
     value: filtered.filter((l) => l.activityType === type).length,
@@ -214,9 +248,52 @@ export default function ReportsScreen() {
     activities: filtered.filter((l) => l.crop === crop).length,
   }));
 
-  const cropColors = ["#1B4332", "#2D6A4F", "#4ADE80", "#F59E0B", "#3B82F6", "#EF4444", "#6B7280", "#8B5CF6"];
+  const cropColors = [
+    "#1B4332",
+    "#2D6A4F",
+    "#4ADE80",
+    "#F59E0B",
+    "#3B82F6",
+    "#EF4444",
+    "#6B7280",
+    "#8B5CF6",
+  ];
 
   const hasData = filtered.length > 0;
+
+  const handleExportReport = async () => {
+    try {
+      Alert.alert("Export Report", `Generate ${timeRange} report as PDF?`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Export PDF",
+          onPress: async () => {
+            try {
+              console.log("Starting PDF export...");
+
+              await generatePDFReport({
+                profile,
+                logs: filtered,
+                timeRange,
+                totalExpenses,
+                totalYield,
+                monthlyExpenses,
+                activityCounts,
+                cropExpenses,
+              });
+
+              Alert.alert("Success", "Report exported successfully!");
+            } catch (error: any) {
+              console.error("Export failed:", error);
+              Alert.alert("Error", error.message || "Failed to export report");
+            }
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Export error:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -232,9 +309,15 @@ export default function ReportsScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 100 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 20,
+          paddingBottom: 100,
+        }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Header */}
         <View className="mb-6">
@@ -250,7 +333,9 @@ export default function ReportsScreen() {
             <TouchableOpacity
               key={range}
               className={`flex-1 py-3 rounded-xl ${
-                timeRange === range ? "bg-primary" : "bg-surface border border-border"
+                timeRange === range
+                  ? "bg-primary"
+                  : "bg-surface border border-border"
               }`}
               onPress={() => setTimeRange(range)}
             >
@@ -259,7 +344,9 @@ export default function ReportsScreen() {
                   timeRange === range ? "text-white" : "text-text-primary"
                 }`}
               >
-                {range === "season" ? "Season" : `This ${range.charAt(0).toUpperCase() + range.slice(1)}`}
+                {range === "season"
+                  ? "Season"
+                  : `This ${range.charAt(0).toUpperCase() + range.slice(1)}`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -269,7 +356,9 @@ export default function ReportsScreen() {
         {!hasData && (
           <View className="bg-surface border border-border rounded-2xl p-8 items-center mb-6">
             <Ionicons name="stats-chart-outline" size={48} color="#9CA3AF" />
-            <Text className="text-text-primary font-bold text-lg mt-4">No Data Yet</Text>
+            <Text className="text-text-primary font-bold text-lg mt-4">
+              No Data Yet
+            </Text>
             <Text className="text-text-secondary text-sm mt-2 text-center">
               Start logging farm activities to see your analytics here
             </Text>
@@ -299,7 +388,9 @@ export default function ReportsScreen() {
           <Text className="text-text-primary font-bold text-base mb-1">
             Total Activities
           </Text>
-          <Text className="text-primary font-bold text-3xl">{filtered.length}</Text>
+          <Text className="text-primary font-bold text-3xl">
+            {filtered.length}
+          </Text>
           <Text className="text-text-muted text-xs mt-1">
             logged in this {timeRange}
           </Text>
@@ -316,7 +407,10 @@ export default function ReportsScreen() {
           <BarChart data={monthlyExpenses} color="#1B4332" />
           <View className="mt-3 pt-2 border-t border-border">
             <Text className="text-text-muted text-xs">
-              Peak: {formatCurrency(Math.max(...monthlyExpenses.map((m) => m.value), 0))}
+              Peak:{" "}
+              {formatCurrency(
+                Math.max(...monthlyExpenses.map((m) => m.value), 0),
+              )}
             </Text>
           </View>
         </View>
@@ -345,7 +439,10 @@ export default function ReportsScreen() {
                     <View className="flex-row items-center" style={{ gap: 8 }}>
                       <View
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: cropColors[index % cropColors.length] }}
+                        style={{
+                          backgroundColor:
+                            cropColors[index % cropColors.length],
+                        }}
                       />
                       <Text className="text-text-primary font-semibold text-sm">
                         {item.crop}
@@ -373,10 +470,14 @@ export default function ReportsScreen() {
                         style={{
                           width: `${
                             (item.expenses /
-                              Math.max(...cropExpenses.map((c: any) => c.expenses), 1)) *
+                              Math.max(
+                                ...cropExpenses.map((c: any) => c.expenses),
+                                1,
+                              )) *
                             100
                           }%`,
-                          backgroundColor: cropColors[index % cropColors.length],
+                          backgroundColor:
+                            cropColors[index % cropColors.length],
                         }}
                       />
                     </View>
@@ -388,14 +489,21 @@ export default function ReportsScreen() {
         )}
 
         {/* Recent Harvests */}
-        {filtered.filter((l) => l.activityType === "harvest" && l.quantity && l.quantity > 0).length > 0 && (
+        {filtered.filter(
+          (l) => l.activityType === "harvest" && l.quantity && l.quantity > 0,
+        ).length > 0 && (
           <View className="bg-surface border border-border rounded-2xl p-4 mb-6">
             <Text className="text-text-primary font-bold text-lg mb-4">
               Recent Harvests
             </Text>
             <View style={{ gap: 10 }}>
               {filtered
-                .filter((l) => l.activityType === "harvest" && l.quantity && l.quantity > 0)
+                .filter(
+                  (l) =>
+                    l.activityType === "harvest" &&
+                    l.quantity &&
+                    l.quantity > 0,
+                )
                 .slice(0, 5)
                 .map((log) => (
                   <View
@@ -422,6 +530,18 @@ export default function ReportsScreen() {
             </View>
           </View>
         )}
+
+        {/* Export Button */}
+        <TouchableOpacity
+          className="bg-primary rounded-xl p-4 flex-row items-center justify-center mb-6"
+          onPress={handleExportReport}
+        >
+          <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+          <Text className="text-white font-semibold ml-2 text-base">
+            Export {timeRange.charAt(0).toUpperCase() + timeRange.slice(1)}{" "}
+            Report (PDF)
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

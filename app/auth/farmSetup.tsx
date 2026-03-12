@@ -155,10 +155,10 @@ const farmSetup = () => {
           />
 
           {/* Farm Size with Unit Toggle */}
-          <Text className="text-text-primary font-semibold text-sm mb-2">
+          <Text className="text-text-primary font-semibold text-sm mb-1">
             Farm Size
           </Text>
-          <View className="flex-row items-center justify-center mb-4">
+          <View className="flex-row justify-center items-center">
             <View className="flex-1 mr-2">
               <Input
                 label=""
@@ -172,7 +172,7 @@ const farmSetup = () => {
 
             {/* Unit Toggle */}
             <View
-              className="flex-row border border-border rounded-xl overflow-hidden"
+              className="flex-row border border-border rounded-xl overflow-hidden mt-3"
               style={{ height: 45 }}
             >
               <TouchableOpacity

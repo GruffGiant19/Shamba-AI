@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react"; // ✅ ADD useState, useEffect, useRef
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { getLogs } from "../../services/logService";
+import { getUserProfile } from "../../services/userService"; // ✅ ADD THIS
 
 const PROMPTS = [
   {
@@ -29,12 +31,36 @@ const PROMPTS = [
 
 export default function ChatScreen() {
   const router = useRouter();
+  const [profile, setProfile] = useState<any>(null);
+  const [logs, setLogs] = useState<any[]>([]);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // ✅ LOAD PROFILE AND LOGS
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [userData, logsData] = await Promise.all([
+        getUserProfile(),
+        getLogs(),
+      ]);
+      setProfile(userData);
+      setLogs(logsData);
+    } catch (error) {
+      console.error("Failed to load chat data:", error);
+    }
+  };
 
   const handlePromptPress = (prompt: string) => {
     router.push({
       pathname: "/conversation",
       params: {
         initialPrompt: prompt === "Ask your own question" ? "" : prompt,
+        // ✅ PASS PROFILE AND LOGS AS STRINGIFIED JSON
+        profileData: JSON.stringify(profile),
+        logsData: JSON.stringify(logs),
       },
     });
   };
@@ -57,7 +83,7 @@ export default function ChatScreen() {
         {/* Hero */}
         <View className="items-center py-8">
           <View className="bg-primary rounded-full p-6 mb-4">
-            <Ionicons name="sparkles" size={48} color="#FFFFFF" />
+            <Ionicons name="chatbubbles-outline" size={48} color="#FFFFFF" />
           </View>
           <Text className="text-text-primary font-bold text-xl mb-2">
             What do you need help with?
