@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react"; // ✅ ADD useState, useEffect, useRef
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getLogs } from "../../services/logService";
-import { getUserProfile } from "../../services/userService"; // ✅ ADD THIS
+import { getUserProfile } from "../../services/userService";
 
 const PROMPTS = [
   {
@@ -35,7 +35,6 @@ export default function ChatScreen() {
   const [logs, setLogs] = useState<any[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // ✅ LOAD PROFILE AND LOGS
   useEffect(() => {
     loadData();
   }, []);
@@ -58,7 +57,6 @@ export default function ChatScreen() {
       pathname: "/conversation",
       params: {
         initialPrompt: prompt === "Ask your own question" ? "" : prompt,
-        // ✅ PASS PROFILE AND LOGS AS STRINGIFIED JSON
         profileData: JSON.stringify(profile),
         logsData: JSON.stringify(logs),
       },

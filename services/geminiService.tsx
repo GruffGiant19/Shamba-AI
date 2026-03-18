@@ -1,255 +1,142 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI("AIzaSyBYb5hmuPOTKBWZJ9baVQXXmqNSwgWL2tI");
+
 export const getChatResponse = async (
   userMessage: string,
   userProfile?: any,
-  userLogs?: any[] // ✅ ADD LOGS PARAMETER
+  userLogs?: any[]
 ) => {
   try {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    console.log("🤖 Initializing Gemini...");
 
-    const message = userMessage.toLowerCase();
-    const crops = userProfile?.farmProfile?.primaryCrops || [];
-    const firstCrop = crops[0] || "maize";
-    const location = userProfile?.farmProfile?.location || "your area";
-    const farmSize = userProfile?.farmProfile?.farmSize || "your farm";
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // ✅ CALCULATE STATS FROM LOGS
-    const totalLogs = userLogs?.length || 0;
-    const totalExpenses = userLogs?.reduce((sum, log) => sum + (log.cost || 0), 0) || 0;
-    const totalYield = userLogs?.reduce((sum, log) => sum + (log.quantity || 0), 0) || 0;
-    const recentActivities = userLogs?.slice(0, 5) || [];
+    // ✅ BUILD CONTEXT FROM USER DATA
+    const farmContext = buildFarmContext(userProfile, userLogs);
+
+    // ✅ BUILD SYSTEM PROMPT
+    const systemPrompt = `You are Shamba AI, an expert agricultural advisor for small-scale farmers in Ghana and West Africa.
+
+${farmContext}
+
+Your Role:
+- Answer ANY farming question the user asks - general knowledge, specific techniques, market info, weather, pests, diseases, etc.
+- When relevant, personalize advice using the farmer's actual data above
+- Be practical, actionable, and specific to Ghana/West African context
+- Keep responses concise (3-5 paragraphs max unless they ask for detail)
+- Use simple language - you're talking to farmers, not scientists
+- When mentioning expenses, use Ghana Cedis (GH₵)
+
+Response Guidelines:
+- If they ask about THEIR farm (e.g., "What crops am I growing?", "How much have I spent?") → Use their actual data from the context above
+- If they ask general questions (e.g., "What is post-harvest loss in Ghana?") → Answer with your general knowledge
+- If both are relevant (e.g., "How can I reduce my maize expenses?") → Combine their actual maize spending + general cost-saving tips
+
+Examples:
+- "What is Ghana's post-harvest loss percentage?" → Answer with general knowledge about post-harvest losses in Ghana
+- "What crops am I growing?" → List their actual crops from the farm context
+- "How do I improve maize yield?" → Give general maize tips, and if they're growing maize, mention their specific activities
+- "When should I plant tomatoes in Kumasi?" → Give location-specific planting calendar advice
+
+Important:
+- Never make up data. If you don't have information, say so.
+- Don't force personal context into every answer. Use it only when relevant.
+- Be encouraging and supportive - farming is hard work!`;
+
+    // ✅ CALL ACTUAL GEMINI AI
+    console.log("📤 Sending to Gemini:", userMessage.substring(0, 50) + "...");
     
-    // Most common activity
-    const activityCounts: any = {};
-    userLogs?.forEach(log => {
-      activityCounts[log.activityType] = (activityCounts[log.activityType] || 0) + 1;
-    });
-    const mostCommonActivity = Object.entries(activityCounts)
-      .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'farming';
+    const result = await model.generateContent(
+      `${systemPrompt}\n\nUser Question: ${userMessage}`
+    );
+    
+    const response = await result.response;
+    const aiText = response.text();
+    
+    console.log("✅ Gemini responded:", aiText.substring(0, 100) + "...");
+    
+    return aiText;
 
-    // Most worked on crop
-    const cropCounts: any = {};
-    userLogs?.forEach(log => {
-      cropCounts[log.crop] = (cropCounts[log.crop] || 0) + 1;
-    });
-    const mostWorkedCrop = Object.entries(cropCounts)
-      .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || firstCrop;
-
-    // Smart responses based on keywords AND user data
-    if (message.includes("maize") || message.includes("corn") || message.includes("yield")) {
-      const maizeLogs = userLogs?.filter(log => log.crop.toLowerCase().includes('maize')) || [];
-      const maizeExpenses = maizeLogs.reduce((sum, log) => sum + (log.cost || 0), 0);
-      
-      return `Great question about maize! ${maizeLogs.length > 0 ? `I can see you've logged ${maizeLogs.length} maize activities with GH₵ ${maizeExpenses.toFixed(2)} in expenses so far. ` : ''}Here are some tips for improving maize yield:
-
-**1. Soil Preparation**: Ensure deep plowing (20-30cm) and add organic manure 2 weeks before planting
-
-**2. Proper Spacing**: Plant in rows 75cm apart with 25cm between plants
-
-**3. Fertilizer**: Apply NPK 15-15-15 at planting, then top dress with urea after 4-6 weeks
-
-**4. Weed Control**: Keep field weed-free especially in the first 6 weeks
-
-**5. Water Management**: Ensure adequate moisture during tasseling and grain filling stages
-
-Based on your farm size of ${farmSize}, you should aim for 4-6 tons per acre with good practices!`;
-    }
-
-    if (message.includes("tomato")) {
-      const tomatoLogs = userLogs?.filter(log => log.crop.toLowerCase().includes('tomato')) || [];
-      
-      return `Tomatoes are a great crop! ${tomatoLogs.length > 0 ? `I see you've been working on tomatoes with ${tomatoLogs.length} logged activities. ` : ''}Here's advice for ${location}:
-
-**1. Planting Season**: Best planted during cooler months (Sept-Nov or Feb-March)
-
-**2. Nursery**: Start seeds in nursery 4-6 weeks before transplanting
-
-**3. Spacing**: 60cm between rows, 45cm between plants
-
-**4. Support**: Use stakes or cages as plants grow
-
-**5. Pest Control**: Watch for early blight and aphids. Apply neem oil preventatively
-
-**6. Watering**: Water regularly but avoid wetting leaves to prevent diseases
-
-Expected yield: 15-20 tons per acre with proper care!`;
-    }
-
-    if (message.includes("fertilizer") || message.includes("fertiliser")) {
-      const fertilizingLogs = userLogs?.filter(log => log.activityType === 'fertilizing') || [];
-      const fertExpenses = fertilizingLogs.reduce((sum, log) => sum + (log.cost || 0), 0);
-      
-      return `For your crops (${crops.join(", ")}), here's my fertilizer recommendation:
-
-${fertilizingLogs.length > 0 ? `I noticed you've applied fertilizer ${fertilizingLogs.length} times, spending GH₵ ${fertExpenses.toFixed(2)} so far. ` : ''}
-
-**Base Application (at planting):**
-- NPK 15-15-15 or 20-10-10
-- Rate: 2-3 bags per acre
-
-**Top Dressing (4-6 weeks after planting):**
-- CAN (Calcium Ammonium Nitrate) or Urea
-- Rate: 1-2 bags per acre
-
-**Organic Options:**
-- Compost: 5-10 tons per acre
-- Poultry manure: 2-3 tons per acre
-
-**Pro Tip**: Always do a soil test first to know exact nutrient needs!`;
-    }
-
-    if (message.includes("expense") || message.includes("cost") || message.includes("money") || message.includes("budget")) {
-      return `Let me help you with farm expenses! 💰
-
-${totalLogs > 0 ? `
-**Your Current Stats:**
-- Total expenses: GH₵ ${totalExpenses.toFixed(2)}
-- Total activities logged: ${totalLogs}
-- Most worked on: ${mostWorkedCrop}
-
-**Breakdown:**
-Your biggest activities are ${mostCommonActivity}. ${totalExpenses > 0 ? `You're averaging GH₵ ${(totalExpenses / totalLogs).toFixed(2)} per activity.` : ''}
-` : 'Start logging your activities to track expenses!'}
-
-**Tips to Reduce Costs:**
-1. Buy inputs in bulk during off-season
-2. Use organic alternatives where possible
-3. Join farmer cooperatives for group discounts
-4. Keep detailed records to identify waste
-
-Would you like specific advice on any expense category?`;
-    }
-
-    if (message.includes("progress") || message.includes("how am i doing") || message.includes("performance")) {
-      if (totalLogs === 0) {
-        return `You haven't started logging activities yet! 📊
-
-Start tracking your farm work to see:
-- Expense trends
-- Crop performance
-- Activity patterns
-- AI-powered insights
-
-Tap the Logs tab and hit the + button to get started!`;
-      }
-
-      return `Great question! Let me analyze your farm performance: 📊
-
-**Activity Summary:**
-- Total activities: ${totalLogs}
-- Most common activity: ${mostCommonActivity.charAt(0).toUpperCase() + mostCommonActivity.slice(1)}
-- Most worked crop: ${mostWorkedCrop}
-
-**Financial Overview:**
-- Total expenses: GH₵ ${totalExpenses.toFixed(2)}
-- Total yield: ${totalYield} kg
-
-**Recent Work:**
-${recentActivities.slice(0, 3).map((log: any) => 
-  `• ${new Date(log.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}: ${log.activityType} - ${log.crop}`
-).join('\n')}
-
-**Insights:**
-${totalYield > 0 ? `You're harvesting! That's great progress. ` : 'Consider logging harvest data to track your returns. '}
-${totalLogs > 10 ? 'You\'re doing excellent at tracking your farm activities!' : 'Keep logging to unlock more insights!'}
-
-Keep up the good work! 🌱`;
-    }
-
-    if (message.includes("pest") || message.includes("disease") || message.includes("deal")) {
-      return `Pest management for ${mostWorkedCrop}:
-
-**Common Pests:**
-- Fall armyworm (maize): Use Bt-based pesticides
-- Aphids: Neem oil spray
-- Cutworms: Apply furadan at planting
-
-**Prevention Tips:**
-1. Crop rotation to break pest cycles
-2. Remove crop residue after harvest
-3. Scout fields weekly
-4. Plant trap crops around main field
-5. Maintain field hygiene
-
-**Organic Solutions:**
-- Neem oil spray (50ml per 20L water)
-- Wood ash around plant base
-- Intercrop with strong-smelling plants
-
-For severe infestations, consult your local agro-vet!`;
-    }
-
-    if (message.includes("plant") || message.includes("when")) {
-      return `Planting calendar for ${location}:
-
-**Main Season (April-July):**
-- Maize, beans, sorghum
-- Plant at onset of rains
-
-**Short Season (Sept-Dec):**
-- Vegetables, tomatoes
-- Requires irrigation or reliable rainfall
-
-Your season starts in **${userProfile?.experience?.seasonStart || "March"}**, so plan accordingly!
-
-**Pro Tips:**
-- Plant early in the season for better yields
-- Monitor weather forecasts
-- Have seeds ready 2 weeks before planting
-- Prepare land in advance`;
-    }
-
-    if (message.includes("water") || message.includes("irrigation")) {
-      return `Water management tips for ${farmSize}:
-
-**Critical Watering Stages:**
-1. Germination (0-2 weeks)
-2. Flowering/tasseling
-3. Grain filling
-
-**Irrigation Methods:**
-- Drip irrigation: Most efficient, saves 50% water
-- Furrow irrigation: Traditional, easy to implement
-- Sprinkler: Good for large areas
-
-**Water Conservation:**
-- Mulch to reduce evaporation
-- Water early morning or evening
-- Use ridges to capture rainwater
-
-Consider investing in a drip system for high-value crops!`;
-    }
-
-    // Default response with personalized data
-    return `Thanks for asking about "${userMessage}"!
-
-${totalLogs > 0 ? `
-**Your Farm Snapshot:**
-- ${totalLogs} activities logged
-- ${crops.join(", ")} being cultivated
-- GH₵ ${totalExpenses.toFixed(2)} in expenses tracked
-- ${totalYield} kg harvested so far
-
-Your most active work: ${mostCommonActivity}
-` : `
-**Your Farm Profile:**
-- Farm: ${userProfile?.farmProfile?.farmName || "Your farm"}
-- Crops: ${crops.join(", ") || "Not specified"}
-- Location: ${location}
-`}
-
-I can help with:
-✓ Crop-specific growing tips
-✓ Fertilizer recommendations
-✓ Pest and disease management
-✓ Planting calendars
-✓ Irrigation advice
-✓ Farm expense tracking
-✓ Performance analysis
-
-Could you be more specific about what aspect you'd like advice on?`;
   } catch (error: any) {
-    console.error("AI Error:", error);
-    throw new Error("Failed to generate response");
+    console.error("❌ Gemini API Error:", error.message);
+    console.error("Full error:", error);
+    
+    // Fallback to basic response if API fails
+    return "I'm having trouble connecting right now. Please try again in a moment. In the meantime, you can check the Reports tab to see your farm data.";
   }
 };
+
+// ✅ HELPER: BUILD CONTEXT FROM USER DATA
+function buildFarmContext(userProfile?: any, userLogs?: any[]): string {
+  if (!userProfile) {
+    return "Context: This is a new user with no farm data yet.";
+  }
+
+  const crops = userProfile?.farmProfile?.primaryCrops || [];
+  const farmName = userProfile?.farmProfile?.farmName || "Unknown";
+  const location = userProfile?.farmProfile?.location || "Ghana";
+  const farmSize = userProfile?.farmProfile?.farmSize || "Unknown";
+  const experience = userProfile?.experience?.experienceLevel || "Unknown";
+
+  // Calculate stats from logs
+  const totalLogs = userLogs?.length || 0;
+  const totalExpenses = userLogs?.reduce((sum, log) => sum + (log.cost || 0), 0) || 0;
+  const totalYield = userLogs?.reduce((sum, log) => sum + (log.quantity || 0), 0) || 0;
+
+  // Activity breakdown
+  const activityCounts: any = {};
+  userLogs?.forEach(log => {
+    activityCounts[log.activityType] = (activityCounts[log.activityType] || 0) + 1;
+  });
+
+  // Crop breakdown
+  const cropCounts: any = {};
+  const cropExpenses: any = {};
+  const cropYields: any = {};
+  
+  userLogs?.forEach(log => {
+    cropCounts[log.crop] = (cropCounts[log.crop] || 0) + 1;
+    cropExpenses[log.crop] = (cropExpenses[log.crop] || 0) + (log.cost || 0);
+    cropYields[log.crop] = (cropYields[log.crop] || 0) + (log.quantity || 0);
+  });
+
+  const mostCommonActivity = Object.entries(activityCounts)
+    .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'none';
+  
+  const mostWorkedCrop = Object.entries(cropCounts)
+    .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || crops[0] || 'none';
+
+  // Recent activities (last 5)
+  const recentActivities = userLogs?.slice(0, 5).map(log => 
+    `${log.activityType} - ${log.crop} (${new Date(log.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })})`
+  ).join(', ') || 'none';
+
+  // Build crop breakdown for context
+  let cropBreakdown = '';
+  if (Object.keys(cropExpenses).length > 0) {
+    cropBreakdown = '\n\nPer-Crop Breakdown:';
+    Object.keys(cropExpenses).forEach(crop => {
+      cropBreakdown += `\n- ${crop}: ${cropCounts[crop] || 0} activities, GH₵ ${cropExpenses[crop].toFixed(2)} expenses, ${cropYields[crop] || 0} kg yield`;
+    });
+  }
+
+  return `
+Farmer's Profile:
+- Farm Name: ${farmName}
+- Location: ${location}
+- Farm Size: ${farmSize}
+- Crops Growing: ${crops.join(', ') || 'Not specified'}
+- Experience Level: ${experience}
+
+Activity Summary:
+- Total Activities Logged: ${totalLogs}
+- Total Expenses: GH₵ ${totalExpenses.toFixed(2)}
+- Total Yield Harvested: ${totalYield} kg
+- Most Common Activity: ${mostCommonActivity}
+- Most Worked Crop: ${mostWorkedCrop}
+- Recent Activities: ${recentActivities}${cropBreakdown}
+
+IMPORTANT: Use this data ONLY when the farmer asks about THEIR farm (e.g., "my crops", "my expenses", "how am I doing"). For general farming questions, ignore this context and answer from your agricultural knowledge.
+`.trim();
+}
