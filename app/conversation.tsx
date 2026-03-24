@@ -18,7 +18,7 @@ import { getChatResponse } from "../services/geminiService";
 export default function ConversationScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
-  
+
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,9 @@ export default function ConversationScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   // ✅ PARSE PROFILE AND LOGS FROM PARAMS
-  const profile = params.profileData ? JSON.parse(params.profileData as string) : null;
+  const profile = params.profileData
+    ? JSON.parse(params.profileData as string)
+    : null;
   const logs = params.logsData ? JSON.parse(params.logsData as string) : [];
 
   useEffect(() => {
@@ -67,7 +69,11 @@ export default function ConversationScreen() {
 
     try {
       // ✅ PASS PROFILE AND LOGS TO AI
-      const aiResponse = await getChatResponse(userMessage.content, profile, logs);
+      const aiResponse = await getChatResponse(
+        userMessage.content,
+        profile,
+        logs,
+      );
 
       const aiMessage = {
         role: "assistant",
@@ -81,7 +87,8 @@ export default function ConversationScreen() {
 
       const errorMessage = {
         role: "assistant",
-        content: "Sorry, I'm having trouble responding right now. Please try again.",
+        content:
+          "Sorry, I'm having trouble responding right now. Please try again.",
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -125,13 +132,18 @@ export default function ConversationScreen() {
           {messages.length === 0 ? (
             <View className="flex-1 justify-center items-center">
               <View className="bg-primary rounded-full p-6 mb-4">
-                <Ionicons name="sparkles" size={48} color="#FFFFFF" />
+                <Ionicons
+                  name="chatbubbles-outline"
+                  size={48}
+                  color="#FFFFFF"
+                />
               </View>
               <Text className="text-text-primary font-bold text-xl mb-2">
                 Ask Shamba AI Anything
               </Text>
               <Text className="text-text-secondary text-sm text-center mb-6 px-8">
-                Get personalized farming advice based on your crops and activities
+                Get personalized farming advice based on your crops and
+                activities
               </Text>
             </View>
           ) : (
@@ -158,7 +170,9 @@ export default function ConversationScreen() {
                   >
                     <Text
                       className={`text-sm leading-5 ${
-                        message.role === "user" ? "text-white" : "text-text-primary"
+                        message.role === "user"
+                          ? "text-white"
+                          : "text-text-primary"
                       }`}
                     >
                       {message.content}
