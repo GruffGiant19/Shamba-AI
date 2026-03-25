@@ -22,7 +22,14 @@ app.use((req, res, next) => {
 
 // ✅ Routes AFTER middleware
 app.get("/", (req, res) => {
-  res.json({ message: "Shamba API is running 🌱" });
+  res.json({ status: "ok", message: "Shamba API is running 🌱", timestamp: new Date().toISOString() });
+});
+
+app.get("api/health", (req,res) => {
+  res.json({
+    status: "healthy",
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected" 
+  });
 });
 
 const userRoutes = require("./routes/UserRoutes");
