@@ -11,19 +11,18 @@ app.use(express.json());
 
 // Health check routes (BEFORE other routes)
 app.get("/", (req, res) => {
-  res.json({
-    status: "ok",
+  res.json({ 
+    status: "ok", 
     message: "Shamba API is running",
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 });
 
 app.get("/api/health", (req, res) => {
-  res.json({
+  res.json({ 
     status: "healthy",
-    mongodb:
-      mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -36,17 +35,15 @@ app.use("/api/logs", logRoutes);
 
 // 404 handler (for debugging)
 app.use((req, res) => {
-  res.status(404).json({
+  res.status(404).json({ 
     error: "Route not found",
     path: req.path,
-    method: req.method,
+    method: req.method
   });
 });
 
 // MongoDB Connection
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://derrickarhinbannerman_db_user:YOUR_PASSWORD@cluster0.lsjbyht.mongodb.net/shamba";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://derrickarhinbannerman_db_user:YOUR_PASSWORD@cluster0.lsjbyht.mongodb.net/shamba";
 
 mongoose
   .connect(MONGODB_URI)
