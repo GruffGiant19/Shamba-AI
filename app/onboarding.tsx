@@ -122,9 +122,9 @@ function AiIllustration() {
 
 function HarvestIllustration() {
   const crops = [
-    { label: "Tomatoes", bg: "#FEF3C7", text: "#92400E", pct: "40%" },
-    { label: "Peppers", bg: "#FEE2E2", text: "#991B1B", pct: "35%" },
-    { label: "Lettuce", bg: "#E8F5E9", text: PRIMARY, pct: "25%" },
+    { label: "Tomatoes", bg: "#FEF3C7", text: "#92400E", pct: 40 },
+    { label: "Peppers", bg: "#FEE2E2", text: "#991B1B", pct: 35 },
+    { label: "Lettuce", bg: "#E8F5E9", text: PRIMARY, pct: 25 },
   ];
   return (
     <View style={il.wrapper}>
@@ -146,7 +146,7 @@ function HarvestIllustration() {
                   ]}
                 />
               </View>
-              <Text style={[il.netPct, { color: crop.text }]}>{crop.pct}</Text>
+              <Text style={[il.netPct, { color: crop.text }]}>{crop.pct}%</Text>
             </View>
           ))}
           <View style={il.checkRow}>
