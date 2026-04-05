@@ -32,7 +32,7 @@ const getApiUrl = () => {
   return `http://localhost:${DEFAULT_API_PORT}/api`;
 };
 
-const API_URL = getApiUrl();
+const API_URL = "https://shamba-api.onrender.com/api";
 
 export interface LogEntry {
   _id?: string;

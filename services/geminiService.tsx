@@ -1,11 +1,34 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("AIzaSyBYb5hmuPOTKBWZJ9baVQXXmqNSwgWL2tI");
+interface UserProfile {
+  farmProfile?: {
+    primaryCrops: string[];
+    farmName: string;
+    location: string;
+    farmSize: string;
+  };
+  experience?: {
+    experienceLevel: string;
+  };
+}
+
+interface UserLog {
+  activityType: string;
+  crop: string;
+  cost: number;
+  quantity: number;
+  date: string;
+}
+
+const genAI = new GoogleGenerativeAI(
+  process.env.EXPO_PUBLIC_GEMINI_API_KEY ||
+    "AIzaSyCqtmQu-rSzp7yCxWeDULbWPm27CgQdOZU",
+);
 
 export const getChatResponse = async (
   userMessage: string,
-  userProfile?: any,
-  userLogs?: any[]
+  userProfile?: UserProfile,
+  userLogs?: UserLog[],
 ) => {
   try {
     console.log("🤖 Initializing Gemini...");
@@ -46,29 +69,31 @@ Important:
 
     // ✅ CALL ACTUAL GEMINI AI
     console.log("📤 Sending to Gemini:", userMessage.substring(0, 50) + "...");
-    
+
     const result = await model.generateContent(
-      `${systemPrompt}\n\nUser Question: ${userMessage}`
+      `${systemPrompt}\n\nUser Question: ${userMessage}`,
     );
-    
+
     const response = await result.response;
     const aiText = response.text();
-    
-    console.log("✅ Gemini responded:", aiText.substring(0, 100) + "...");
-    
-    return aiText;
 
+    console.log("✅ Gemini responded:", aiText.substring(0, 100) + "...");
+
+    return aiText;
   } catch (error: any) {
     console.error("❌ Gemini API Error:", error.message);
     console.error("Full error:", error);
-    
+
     // Fallback to basic response if API fails
     return "I'm having trouble connecting right now. Please try again in a moment. In the meantime, you can check the Reports tab to see your farm data.";
   }
 };
 
 // ✅ HELPER: BUILD CONTEXT FROM USER DATA
-function buildFarmContext(userProfile?: any, userLogs?: any[]): string {
+function buildFarmContext(
+  userProfile?: UserProfile,
+  userLogs?: UserLog[],
+): string {
   if (!userProfile) {
     return "Context: This is a new user with no farm data yet.";
   }
@@ -81,42 +106,53 @@ function buildFarmContext(userProfile?: any, userLogs?: any[]): string {
 
   // Calculate stats from logs
   const totalLogs = userLogs?.length || 0;
-  const totalExpenses = userLogs?.reduce((sum, log) => sum + (log.cost || 0), 0) || 0;
-  const totalYield = userLogs?.reduce((sum, log) => sum + (log.quantity || 0), 0) || 0;
+  const totalExpenses =
+    userLogs?.reduce((sum, log) => sum + (log.cost || 0), 0) || 0;
+  const totalYield =
+    userLogs?.reduce((sum, log) => sum + (log.quantity || 0), 0) || 0;
 
   // Activity breakdown
-  const activityCounts: any = {};
-  userLogs?.forEach(log => {
-    activityCounts[log.activityType] = (activityCounts[log.activityType] || 0) + 1;
+  const activityCounts: Record<string, number> = {};
+  userLogs?.forEach((log) => {
+    activityCounts[log.activityType] =
+      (activityCounts[log.activityType] || 0) + 1;
   });
 
   // Crop breakdown
-  const cropCounts: any = {};
-  const cropExpenses: any = {};
-  const cropYields: any = {};
-  
-  userLogs?.forEach(log => {
+  const cropCounts: Record<string, number> = {};
+  const cropExpenses: Record<string, number> = {};
+  const cropYields: Record<string, number> = {};
+
+  userLogs?.forEach((log) => {
     cropCounts[log.crop] = (cropCounts[log.crop] || 0) + 1;
     cropExpenses[log.crop] = (cropExpenses[log.crop] || 0) + (log.cost || 0);
     cropYields[log.crop] = (cropYields[log.crop] || 0) + (log.quantity || 0);
   });
 
-  const mostCommonActivity = Object.entries(activityCounts)
-    .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'none';
-  
-  const mostWorkedCrop = Object.entries(cropCounts)
-    .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || crops[0] || 'none';
+  const mostCommonActivity =
+    Object.entries(activityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    "none";
+
+  const mostWorkedCrop =
+    Object.entries(cropCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    crops[0] ||
+    "none";
 
   // Recent activities (last 5)
-  const recentActivities = userLogs?.slice(0, 5).map(log => 
-    `${log.activityType} - ${log.crop} (${new Date(log.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })})`
-  ).join(', ') || 'none';
+  const recentActivities =
+    userLogs
+      ?.slice(0, 5)
+      .map(
+        (log) =>
+          `${log.activityType} - ${log.crop} (${new Date(log.date).toLocaleDateString("en-GB", { month: "short", day: "numeric" })})`,
+      )
+      .join(", ") || "none";
 
   // Build crop breakdown for context
-  let cropBreakdown = '';
+  let cropBreakdown = "";
   if (Object.keys(cropExpenses).length > 0) {
-    cropBreakdown = '\n\nPer-Crop Breakdown:';
-    Object.keys(cropExpenses).forEach(crop => {
+    cropBreakdown = "\n\nPer-Crop Breakdown:";
+    Object.keys(cropExpenses).forEach((crop) => {
       cropBreakdown += `\n- ${crop}: ${cropCounts[crop] || 0} activities, GH₵ ${cropExpenses[crop].toFixed(2)} expenses, ${cropYields[crop] || 0} kg yield`;
     });
   }
@@ -126,7 +162,7 @@ Farmer's Profile:
 - Farm Name: ${farmName}
 - Location: ${location}
 - Farm Size: ${farmSize}
-- Crops Growing: ${crops.join(', ') || 'Not specified'}
+- Crops Growing: ${crops.join(", ") || "Not specified"}
 - Experience Level: ${experience}
 
 Activity Summary:
