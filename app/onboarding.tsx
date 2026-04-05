@@ -8,9 +8,12 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import Svg, { Defs, RadialGradient, Stop, Ellipse } from "react-native-svg";
 
 const { width: W, height: H } = Dimensions.get("window");
 const PRIMARY = "#1B4332";
@@ -23,151 +26,175 @@ const SURFACE = "#FFFFFF";
 const SLIDES = [
   {
     id: "1",
-    title: "Smart Farm Management",
-    body: "Track planting, watering, and harvesting activities with ease. Grow smarter, not harder.",
-    illustration: "planting",
+    title: "Track Every Activity",
+    body: "Log planting, watering, fertilizing, and more under 30 seconds. Never lose track of your farm work again",
+    illustration: "tracking",
   },
   {
     id: "2",
-    title: "AI-Powered Insights",
-    body: "Get intelligent recommendations for optimal planting times, watering schedules, and crop care.",
+    title: "See Where Your Money Goes",
+    body: "Get visual reports on expenses, yields, and crop performance. Make data-driven decisions for better harvests.",
     illustration: "ai",
   },
   {
     id: "3",
-    title: "Complete Farm Tracking",
-    body: "Monitor all your farming activities from seed to harvest. Maximize your yield potential.",
+    title: "AI-Powered Farming Advice",
+    body: "Get smart recommendations tailored to your crops, weather, and soil conditions. It's like having an exoert in your pocket.",
     illustration: "harvest",
   },
 ];
 
 // ── Illustrations ────────────────────────────────────────
-function PlantingIllustration() {
+function TrackingIllustration() {
   return (
-    <View style={il.wrapper}>
-      <View style={il.phone}>
-        <View style={il.phoneScreen}>
-          <View style={il.farmCard}>
-            <Text style={il.cardTitle}>Today's Activities</Text>
-            <View style={il.activityRow}>
-              <Ionicons name="leaf-outline" size={16} color={PRIMARY} />
-              <Text style={il.activityText}>Planting - 2 beds</Text>
-            </View>
-            <View style={il.activityRow}>
-              <Ionicons name="water-outline" size={16} color="#3B82F6" />
-              <Text style={il.activityText}>Watering - Zone A</Text>
-            </View>
-            <View style={il.activityRow}>
-              <Ionicons name="flask-outline" size={16} color={ACCENT} />
-              <Text style={il.activityText}>Fertilizing - Tomatoes</Text>
-            </View>
-          </View>
-          {/* Mock farm stats */}
-          <View style={il.statsContainer}>
-            <View style={il.statItem}>
-              <Text style={il.statNumber}>12</Text>
-              <Text style={il.statLabel}>Active Crops</Text>
-            </View>
-            <View style={il.statItem}>
-              <Text style={il.statNumber}>85%</Text>
-              <Text style={il.statLabel}>Health Rate</Text>
-            </View>
-            <View style={il.statItem}>
-              <Text style={il.statNumber}>3</Text>
-              <Text style={il.statLabel}>Days to Harvest</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-      <View style={il.badge}>
-        <Ionicons name="leaf" size={20} color="#FFFFFF" />
-      </View>
-    </View>
+    <LinearGradient
+      colors={["#e8f8f0", "#d4f5e5", "#e8f8f0"]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={StyleSheet.absoluteFillObject} // ← fills the parent completely
+    >
+      <Svg style={{ flex: 1 }} width="100%" height="100%">
+        <Defs>
+          <RadialGradient id="glow1" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#5ecfb1" stopOpacity="0.55" />
+            <Stop offset="60%" stopColor="#85ddc0" stopOpacity="0.25" />
+            <Stop offset="100%" stopColor="#b2edd4" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Ellipse cx="50%" cy="50%" rx="40%" ry="40%" fill="url(#glow1)" />
+      </Svg>
+
+      <Image
+        source={require("../assets/icons/Phone.png")}
+        style={{
+          position: "absolute",
+          width: 280,
+          height: 280,
+          resizeMode: "contain",
+          alignSelf: "center",
+          top: "50%",
+          transform: [{ translateY: -110 }], // half of height to truly center
+        }}
+      />
+      <Image
+        source={require("../assets/icons/tracking_badge.png")}
+        style={{
+          position: "absolute",
+          width: 60,
+          height: 60,
+          resizeMode: "contain",
+          right: "15%",
+          top: "50%",
+          transform: [{ translateY: -30 }],
+        }}
+      />
+    </LinearGradient>
+  );
+}
+
+function ReportIllustration() {
+  return (
+    <LinearGradient
+      colors={["#fffef5", "#f9f0a8", "#fffef5"]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={StyleSheet.absoluteFillObject}
+    >
+      <Svg style={{ flex: 1 }} width="100%" height="100%">
+        <Defs>
+          <RadialGradient id="glow2" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#f5e97a" stopOpacity="0.65" />
+            <Stop offset="55%" stopColor="#f7eda0" stopOpacity="0.35" />
+            <Stop offset="100%" stopColor="#fdf9d0" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Ellipse cx="50%" cy="50%" rx="40%" ry="40%" fill="url(#glow2)" />
+      </Svg>
+
+      <Image
+        source={require("../assets/icons/Reports_phone.png")}
+        style={{
+          position: "absolute",
+          width: 280,
+          height: 280,
+          resizeMode: "contain",
+          alignSelf: "center",
+          top: "50%",
+          transform: [{ translateY: -110 }], // half of height to truly center
+        }}
+      />
+      <Image
+        source={require("../assets/icons/Reports_badge.png")}
+        style={{
+          position: "absolute",
+          width: 60,
+          height: 60,
+          resizeMode: "contain",
+          right: "15%",
+          top: "60%",
+          transform: [{ translateY: -30 }],
+        }}
+      />
+    </LinearGradient>
   );
 }
 
 function AiIllustration() {
-  return (
-    <View style={il.wrapper}>
-      <View style={il.phone}>
-        <View style={il.phoneScreen}>
-          <View style={il.aiCard}>
-            <Text style={il.aiTitle}>🌱 AI Recommendation</Text>
-            <Text style={il.aiBody}>
-              Based on weather patterns and soil moisture,{"\n"}optimal watering
-              time: 6:00 AM today
-            </Text>
-          </View>
-          <Text style={il.arrow}>↓</Text>
-          <View style={il.parsedCard}>
-            <Text style={il.parsedLabel}>Action Plan</Text>
-            <Text style={il.parsedRow}>
-              Time <Text style={il.parsedVal}>6:00 AM</Text>
-            </Text>
-            <Text style={il.parsedRow}>
-              Duration <Text style={il.parsedVal}>15 mins</Text>
-            </Text>
-            <Text style={il.parsedRow}>
-              Zones <Text style={il.parsedVal}>A, B, C</Text>
-            </Text>
-          </View>
-        </View>
-      </View>
-      <View style={[il.badge, { backgroundColor: PRIMARY_TINT }]}>
-        <Text style={[il.badgeText, { color: PRIMARY, fontSize: 12 }]}>AI</Text>
-      </View>
-    </View>
-  );
-}
-
-function HarvestIllustration() {
   const crops = [
     { label: "Tomatoes", bg: "#FEF3C7", text: "#92400E", pct: 40 },
     { label: "Peppers", bg: "#FEE2E2", text: "#991B1B", pct: 35 },
     { label: "Lettuce", bg: "#E8F5E9", text: PRIMARY, pct: 25 },
   ];
   return (
-    <View style={il.wrapper}>
-      <View style={il.phone}>
-        <View style={il.phoneScreen}>
-          <Text style={il.netHeading}>Harvest Ready</Text>
-          {crops.map((crop) => (
-            <View key={crop.label} style={il.netRow}>
-              <View style={[il.netBadge, { backgroundColor: crop.bg }]}>
-                <Text style={[il.netBadgeText, { color: crop.text }]}>
-                  {crop.label}
-                </Text>
-              </View>
-              <View style={il.netBarBg}>
-                <View
-                  style={[
-                    il.netBarFill,
-                    { backgroundColor: crop.text, width: crop.pct },
-                  ]}
-                />
-              </View>
-              <Text style={[il.netPct, { color: crop.text }]}>{crop.pct}%</Text>
-            </View>
-          ))}
-          <View style={il.checkRow}>
-            <View style={[il.check, { backgroundColor: PRIMARY_TINT }]}>
-              <Ionicons name="checkmark" size={12} color={PRIMARY} />
-            </View>
-            <Text style={il.checkText}>All crops tracked</Text>
-          </View>
-        </View>
-      </View>
-      <View style={il.badge}>
-        <Ionicons name="basket-outline" size={20} color="#FFFFFF" />
-      </View>
-    </View>
+    <LinearGradient
+      colors={["#e8f8f0", "#d4f5e5", "#e8f8f0"]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={StyleSheet.absoluteFillObject} // ← fills the parent completely
+    >
+      <Svg style={{ flex: 1 }} width="100%" height="100%">
+        <Defs>
+          <RadialGradient id="glow3" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#5ecfb1" stopOpacity="0.55" />
+            <Stop offset="60%" stopColor="#85ddc0" stopOpacity="0.25" />
+            <Stop offset="100%" stopColor="#b2edd4" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Ellipse cx="50%" cy="50%" rx="40%" ry="40%" fill="url(#glow3)" />
+      </Svg>
+
+      <Image
+        source={require("../assets/icons/AI_phone.png")}
+        style={{
+          position: "absolute",
+          width: 280,
+          height: 280,
+          resizeMode: "contain",
+          alignSelf: "center",
+          top: "50%",
+          transform: [{ translateY: -110 }], // half of height to truly center
+        }}
+      />
+      <Image
+        source={require("../assets/icons/AI_badge.png")}
+        style={{
+          position: "absolute",
+          width: 60,
+          height: 60,
+          resizeMode: "contain",
+          right: "12%",
+          top: "30%",
+          transform: [{ translateY: -30 }],
+        }}
+      />
+    </LinearGradient>
   );
 }
 
 const ILLUSTRATIONS = [
-  PlantingIllustration,
+  TrackingIllustration,
+  ReportIllustration,
   AiIllustration,
-  HarvestIllustration,
 ];
 
 // ── Slide ────────────────────────────────────────────────
@@ -204,26 +231,29 @@ export default function OnboardingScreen() {
   const isLast = active === SLIDES.length - 1;
 
   return (
-    <SafeAreaView style={ob.safe}>
+    <View style={ob.safe}>
       {/* Skip */}
       <TouchableOpacity style={ob.skip} onPress={finish}>
         <Text style={ob.skipText}>Skip</Text>
       </TouchableOpacity>
 
       {/* Slides */}
-      <FlatList
-        ref={ref}
-        data={SLIDES}
-        keyExtractor={(s) => s.id}
-        renderItem={({ item, index }) => <Slide item={item} index={index} />}
-        horizontal
-        pagingEnabled
-        scrollEnabled={false}
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) =>
-          setActive(Math.round(e.nativeEvent.contentOffset.x / W))
-        }
-      />
+      <View style={{ height: H * 0.55 }}>
+        <FlatList
+          ref={ref}
+          data={SLIDES}
+          keyExtractor={(s) => s.id}
+          renderItem={({ item, index }) => <Slide item={item} index={index} />}
+          horizontal
+          pagingEnabled
+          scrollEnabled={false}
+          style={{ height: H * 0.15 }}
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) =>
+            setActive(Math.round(e.nativeEvent.contentOffset.x / W))
+          }
+        />
+      </View>
 
       {/* Bottom */}
       <View style={ob.bottom}>
@@ -242,145 +272,12 @@ export default function OnboardingScreen() {
           <Text style={ob.btnText}>{isLast ? "Get started" : "Next"}</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 // ── Illustration styles ───────────────────────────────────
 const il = StyleSheet.create({
-  wrapper: {
-    width: W * 0.78,
-    height: H * 0.42,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  phone: {
-    width: 200,
-    height: 320,
-    backgroundColor: "#1A1A2E",
-    borderRadius: 28,
-    padding: 12,
-    borderWidth: 3,
-    borderColor: "#333",
-  },
-  phoneScreen: {
-    flex: 1,
-    backgroundColor: BACKGROUND,
-    borderRadius: 18,
-    padding: 10,
-    overflow: "hidden",
-  },
-  // Farm/Planting slide styles
-  farmCard: {
-    backgroundColor: PRIMARY,
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "rgba(255,255,255,0.9)",
-    marginBottom: 6,
-  },
-  activityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-    gap: 6,
-  },
-  activityText: {
-    fontSize: 7.5,
-    color: "rgba(255,255,255,0.8)",
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  statItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  statNumber: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: PRIMARY,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 6,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  // AI slide styles
-  aiCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 6,
-    borderLeftWidth: 3,
-    borderLeftColor: ACCENT,
-  },
-  aiTitle: {
-    fontSize: 8,
-    fontWeight: "700",
-    color: "#92400E",
-    marginBottom: 3,
-  },
-  aiBody: { fontSize: 7, color: "#6B7280", lineHeight: 11 },
-  arrow: { textAlign: "center", fontSize: 14, color: PRIMARY, marginBottom: 4 },
-  parsedCard: {
-    backgroundColor: PRIMARY_TINT,
-    borderRadius: 10,
-    padding: 8,
-  },
-  parsedLabel: {
-    fontSize: 8,
-    fontWeight: "700",
-    color: PRIMARY,
-    marginBottom: 4,
-  },
-  parsedRow: { fontSize: 7.5, color: "#1A1A1A", marginBottom: 2 },
-  parsedVal: { fontWeight: "700", color: PRIMARY },
-  // Harvest slide styles
-  netHeading: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#1A1A1A",
-    marginBottom: 8,
-  },
-  netRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    gap: 5,
-  },
-  netBadge: { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 5 },
-  netBadgeText: { fontSize: 7, fontWeight: "700" },
-  netBarBg: {
-    flex: 1,
-    height: 6,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  netBarFill: { height: 6, borderRadius: 3, opacity: 0.7 },
-  netPct: { fontSize: 7, fontWeight: "600", width: 24 },
-  checkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    gap: 6,
-  },
-  check: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkText: { fontSize: 8, color: "#1A1A1A" },
   // Badge
   badge: {
     position: "absolute",
@@ -400,13 +297,13 @@ const il = StyleSheet.create({
 const slide = StyleSheet.create({
   root: {
     alignItems: "center",
-    paddingTop: 16,
   },
   illustrationBox: {
-    width: W * 0.78,
-    height: H * 0.42,
-    backgroundColor: SURFACE,
-    borderRadius: 28,
+    width: "100%",
+    backgroundColor: "aquamarine",
+    height: "100%",
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -420,19 +317,23 @@ const ob = StyleSheet.create({
     backgroundColor: BACKGROUND,
   },
   skip: {
-    alignSelf: "flex-end",
+    position: "absolute",
+    top: 50,
+    right: 20,
     paddingHorizontal: 20,
     paddingVertical: 12,
+    borderRadius: 8,
+    zIndex: 1000,
   },
   skipText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#6B7280",
     fontWeight: "500",
   },
   bottom: {
     paddingHorizontal: 24,
-    paddingBottom: 36,
-    paddingTop: 24,
+    paddingBottom: 64,
+    paddingTop: 64,
   },
   title: {
     fontSize: 28,
@@ -443,11 +344,12 @@ const ob = StyleSheet.create({
     letterSpacing: -0.5,
   },
   body: {
-    fontSize: 15,
+    fontSize: 16,
     color: "#6B7280",
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 24,
+    letterSpacing: 0.3,
   },
   dots: {
     flexDirection: "row",

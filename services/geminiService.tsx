@@ -21,9 +21,10 @@ interface UserLog {
 }
 
 const genAI = new GoogleGenerativeAI(
-  process.env.EXPO_PUBLIC_GEMINI_API_KEY ||
-    "AIzaSyCqtmQu-rSzp7yCxWeDULbWPm27CgQdOZU",
+  process.env.EXPO_PUBLIC_GEMINI_API_KEY || "",
 );
+const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+console.log("API KEY:", apiKey); // add this temporarily
 
 export const getChatResponse = async (
   userMessage: string,

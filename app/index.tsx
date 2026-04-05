@@ -40,5 +40,5 @@ export default function Index() {
   }
 
   if (user) return <Redirect href="/(tabs)/home" />;
-  return <Redirect href={seen ? "/auth/login" : "/onboarding"} />;
+  return <Redirect href={seen ? "/auth/splash" : "/onboarding"} />;
 }
