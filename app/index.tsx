@@ -5,12 +5,14 @@ import { ActivityIndicator, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
+import { getUserProfile } from "../services/userService";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
   const { user, loading } = useAuth();
   const [seen, setSeen] = useState<boolean | null>(null);
+  const [needsFarmSetup, setNeedsFarmSetup] = useState<boolean | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem("onboarding_done").then((val) =>
@@ -19,12 +21,37 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    if (!loading && seen !== null) {
+    if (!user) {
+      setNeedsFarmSetup(null);
+      return;
+    }
+
+    let cancelled = false;
+    AsyncStorage.getItem("farm_setup_skipped").then(async (skipped) => {
+      if (skipped === "true") {
+        if (!cancelled) setNeedsFarmSetup(false);
+        return;
+      }
+      try {
+        const profile = await getUserProfile();
+        if (!cancelled) setNeedsFarmSetup(!profile?.farmProfile?.farmName);
+      } catch {
+        // Network/profile lookup failed — don't trap the user on a blank screen.
+        if (!cancelled) setNeedsFarmSetup(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading && seen !== null && (!user || needsFarmSetup !== null)) {
       SplashScreen.hideAsync();
     }
-  }, [loading, seen]);
+  }, [loading, seen, user, needsFarmSetup]);
 
-  if (loading || seen === null) {
+  if (loading || seen === null || (user && needsFarmSetup === null)) {
     return (
       <View
         style={{
@@ -39,6 +66,10 @@ export default function Index() {
     );
   }
 
-  if (user) return <Redirect href="/(tabs)/home" />;
+  if (user) {
+    return (
+      <Redirect href={needsFarmSetup ? "/auth/farmSetup" : "/(tabs)/home"} />
+    );
+  }
   return <Redirect href={seen ? "/auth/splash" : "/onboarding"} />;
 }

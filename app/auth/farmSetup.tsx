@@ -6,6 +6,7 @@ import Input from "../../components/common/Input";
 import { useRouter } from "expo-router";
 import Button from "../../components/common/Button";
 import { saveUserProfile } from "@/services/userService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const farmSetup = () => {
   const router = useRouter();
@@ -254,7 +255,10 @@ const farmSetup = () => {
           loading={loading}
         />
         <TouchableOpacity
-          onPress={() => router.replace("/(tabs)")}
+          onPress={async () => {
+            await AsyncStorage.setItem("farm_setup_skipped", "true");
+            router.replace("/(tabs)/home");
+          }}
           className="items-center mt-4 mb-8"
         >
           <Text className="text-text-muted text-sm">Skip for now</Text>
